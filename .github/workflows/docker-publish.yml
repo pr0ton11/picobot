@@ -1,17 +1,17 @@
 name: Docker Build
 
 on:
-  workflow_dispatch:
-    inputs:
-      version_tag:
-        description: 'Version tag (e.g., v0.1.0) - leave empty to only push :latest'
-        required: false
-        type: string
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  packages: write
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,19 +32,20 @@ jobs:
         with:
           driver-opts: image=moby/buildkit:latest
 
-      - name: Log in to Docker Hub
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: louisho5/picobot
+          images: ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=${{ inputs.version_tag }},enable=${{ inputs.version_tag != '' }}
+            type=sha,prefix=
             type=raw,value=latest
 
       - name: Build and push Docker image
