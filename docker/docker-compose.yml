@@ -34,4 +34,4 @@ services:
       - SLACK_ALLOW_CHANNELS=${SLACK_ALLOW_CHANNELS:-}
     volumes:
       # Persist config, workspace, memory, skills, and WhatsApp session DB
-      - ./picobot-data:/home/picobot/.picobot
+      - ./picobot-data:/home/nonroot/.picobot

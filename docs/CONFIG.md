@@ -387,7 +387,7 @@ The number in the log is the sender's LID. Add that number to `allowFrom`.
 
 ## Docker Environment Variables
 
-When running with Docker, you can override config values using environment variables. The `entrypoint.sh` script applies these overrides at container startup.
+When running with Docker, you can override config values using environment variables. These overrides are applied natively by the Go binary at startup, so no shell or external tools are required.
 
 | Environment Variable | Config Path | Description |
 |---------------------|-------------|-------------|

@@ -26,27 +26,13 @@ RUN set -eux; \
     go build -ldflags="-s -w" -o /picobot ./cmd/picobot
 
 # ---- Runtime Stage ----
-FROM alpine:3.20
-
-RUN apk add --no-cache ca-certificates tzdata bash curl jq
-
-# Create non-root user
-RUN addgroup -S picobot && adduser -S picobot -G picobot
-
-# Picobot home directory (config + workspace live here)
-ENV PICOBOT_HOME=/home/picobot/.picobot
-RUN mkdir -p ${PICOBOT_HOME} && chown -R picobot:picobot /home/picobot
+FROM gcr.io/distroless/static-debian12:nonroot
 
 COPY --from=builder /picobot /usr/local/bin/picobot
-RUN chmod +x /usr/local/bin/picobot
 
-USER picobot
-WORKDIR /home/picobot
+# Distroless 'nonroot' image runs as uid 65534 by default.
+# Home directory for the nonroot user is /home/nonroot.
+ENV PICOBOT_HOME=/home/nonroot/.picobot
 
-# Run onboard on first start to create config + workspace,
-# then start the gateway. The entrypoint script handles this.
-COPY --chown=picobot:picobot docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["picobot"]
 CMD ["gateway"]
