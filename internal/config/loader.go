@@ -103,6 +103,21 @@ func applyEnvOverrides(cfg *Config) {
 	if v := os.Getenv("SLACK_ALLOW_CHANNELS"); v != "" {
 		cfg.Channels.Slack.AllowChannels = splitCSV(v)
 	}
+
+	// --- Signal ---
+	if v := os.Getenv("SIGNAL_API_URL"); v != "" {
+		cfg.Channels.Signal.Enabled = true
+		cfg.Channels.Signal.APIURL = v
+	}
+	if v := os.Getenv("SIGNAL_API_TOKEN"); v != "" {
+		cfg.Channels.Signal.APIToken = v
+	}
+	if v := os.Getenv("SIGNAL_NUMBER"); v != "" {
+		cfg.Channels.Signal.Number = v
+	}
+	if v := os.Getenv("SIGNAL_ALLOW_FROM"); v != "" {
+		cfg.Channels.Signal.AllowFrom = splitCSV(v)
+	}
 }
 
 // splitCSV splits a comma-separated string into trimmed, non-empty parts.

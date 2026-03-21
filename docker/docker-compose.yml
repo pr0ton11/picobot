@@ -32,6 +32,14 @@ services:
       - SLACK_ALLOW_USERS=${SLACK_ALLOW_USERS:-}
       # Optional: Comma-separated Slack channel IDs allowed to chat
       - SLACK_ALLOW_CHANNELS=${SLACK_ALLOW_CHANNELS:-}
+      # Optional: Signal API URL (secured-signal-api proxy), also enables the channel
+      - SIGNAL_API_URL=${SIGNAL_API_URL:-}
+      # Optional: Signal API Bearer token
+      - SIGNAL_API_TOKEN=${SIGNAL_API_TOKEN:-}
+      # Optional: Signal phone number (e.g. +1234567890)
+      - SIGNAL_NUMBER=${SIGNAL_NUMBER:-}
+      # Optional: Comma-separated phone numbers allowed to message the bot
+      - SIGNAL_ALLOW_FROM=${SIGNAL_ALLOW_FROM:-}
     volumes:
       # Persist config, workspace, memory, skills, and WhatsApp session DB
       - ./picobot-data:/home/nonroot/.picobot
