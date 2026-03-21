@@ -7,14 +7,14 @@
     <img src="https://img.shields.io/badge/RAM-~10MB-orange" alt="Memory Usage">
     <img src="https://img.shields.io/badge/built_with-Go-00ADD8?logo=go" alt="Go">
     <img src="https://img.shields.io/badge/license-MIT-yellow" alt="License">
-    <img src="https://img.shields.io/docker/pulls/louisho5/picobot?logo=docker" alt="Docker Pulls">
-    <img src="https://github.com/louisho5/picobot/actions/workflows/docker-publish.yml/badge.svg" alt="Workflow">
+    <img src="https://ghcr-badge.egpl.dev/pr0ton11/picobot/size" alt="Image Size">
+    <img src="https://github.com/pr0ton11/picobot/actions/workflows/docker-publish.yml/badge.svg" alt="Workflow">
   </p>
 </p>
 
 ---
 
-Love the idea of open-source AI agents like [OpenClaw](https://github.com/openclaw/openclaw) but tired of the bloat? **Picobot** gives you the same power — persistent memory, tool calling, skills, Telegram and Discord integration — in a single ~9MB binary that boots in milliseconds.
+Love the idea of open-source AI agents like [OpenClaw](https://github.com/openclaw/openclaw) but tired of the bloat? **Picobot** gives you the same power — persistent memory, tool calling, skills, Telegram, Discord, Signal and more — in a single ~9MB binary that boots in milliseconds.
 
 No Python. No Node. No 500MB container. Just one Go binary and a config file.
 
@@ -23,7 +23,7 @@ No Python. No Node. No 500MB container. Just one Go binary and a config file.
 | | Picobot | Typical Agent Frameworks |
 |---|---|---|
 | **Binary size** | ~9MB | 200MB+ (Python + deps) |
-| **Docker image** | ~29MB (Alpine) | 500MB–1GB+ |
+| **Docker image** | ~15MB (distroless) | 500MB–1GB+ |
 | **Cold start** | Instant | 5–30 seconds |
 | **RAM usage** | ~10MB idle | 200MB–1GB |
 | **Dependencies** | Zero (single binary) | Python, pip, venv, Node… |
@@ -42,9 +42,9 @@ docker run -d --name picobot \
   -e PICOBOT_MAX_TOKENS=8192 \
   -e PICOBOT_MAX_TOOL_ITERATIONS=100 \
   -e TELEGRAM_BOT_TOKEN="your-telegram-token" \
-  -v ./picobot-data:/home/picobot/.picobot \
+  -v ./picobot-data:/home/nonroot/.picobot \
   --restart unless-stopped \
-  louisho5/picobot:latest
+  ghcr.io/pr0ton11/picobot:latest
 ```
 
 All config, memory, and skills are persisted in `./picobot-data` on your host.
@@ -56,7 +56,7 @@ Create a `docker-compose.yml`:
 ```yaml
 services:
   picobot:
-    image: louisho5/picobot:latest
+    image: ghcr.io/pr0ton11/picobot:latest
     container_name: picobot
     restart: unless-stopped
     environment:
@@ -68,7 +68,7 @@ services:
       - TELEGRAM_BOT_TOKEN=your-telegram-token
       - TELEGRAM_ALLOW_FROM=your-user-id
     volumes:
-      - ./picobot-data:/home/picobot/.picobot
+      - ./picobot-data:/home/nonroot/.picobot
 ```
 
 Then run:
@@ -83,7 +83,7 @@ docker compose up -d
 go build -o picobot ./cmd/picobot
 ./picobot onboard                     # creates ~/.picobot config + workspace
 ./picobot agent -m "Hello!"           # single-shot query
-./picobot channels login              # login to channels (Telegram, Discord, Slack, WhatsApp)
+./picobot channels login              # login to channels (Telegram, Discord, Slack, WhatsApp, Signal)
 ./picobot gateway                     # long-running mode with Telegram
 ```
 
@@ -95,7 +95,7 @@ Actually the logic is simple and straightforward. Messages flow through a **Chat
   <img src="docs/how-it-works.png" alt="How Picobot Works" width="600">
 </p>
 
-Notes: Channel refers to communication channels (e.g., Telegram, Discord, Slack, WhatsApp, etc.).
+Notes: Channel refers to communication channels (e.g., Telegram, Discord, Slack, WhatsApp, Signal, etc.).
 
 ## Features
 
@@ -185,6 +185,16 @@ Connect your agent to Slack via Socket Mode:
 
 The bot responds when mentioned in channels, and responds to all DMs from allowed users (DMs ignore the channel allowlist).
 
+### Signal Integration
+
+Connect your agent to Signal via a [secured-signal-api](https://github.com/pr0ton11/secured-signal-api) proxy:
+
+1. Deploy a `secured-signal-api` instance and link it to your Signal number
+2. Set `SIGNAL_API_URL`, `SIGNAL_API_TOKEN`, and `SIGNAL_NUMBER` environment variables
+3. Optionally restrict access with `SIGNAL_ALLOW_FROM` (comma-separated phone numbers)
+
+The bot responds to incoming Signal messages from allowed numbers.
+
 ### Heartbeat
 
 A configurable periodic check (default: 60s) that reads `HEARTBEAT.md` for scheduled tasks — like a personal cron with natural language.
@@ -219,6 +229,13 @@ Picobot uses a single JSON config at `~/.picobot/config.json`:
       "enabled": true,
       "token": "YOUR_DISCORD_BOT_TOKEN",
       "allowFrom": ["YOUR_DISCORD_USER_ID"]
+    },
+    "signal": {
+      "enabled": true,
+      "apiURL": "https://your-signal-api.example.com",
+      "apiToken": "YOUR_SIGNAL_API_TOKEN",
+      "number": "+1234567890",
+      "allowFrom": ["+1234567890"]
     }
   }
 }
@@ -233,7 +250,7 @@ picobot version                        # print version
 picobot onboard                        # create config + workspace
 picobot agent -m "..."                 # one-shot query
 picobot agent -M model -m "..."        # query with specific model
-picobot channels login                 # login to channels (Telegram, Discord, Slack, WhatsApp)
+picobot channels login                 # login to channels (Telegram, Discord, Slack, WhatsApp, Signal)
 picobot gateway                        # start long-running agent
 picobot memory read today|long         # read memory
 picobot memory append today|long -c "" # append to memory
@@ -266,7 +283,7 @@ Works on any Linux with 256MB RAM. No runtime dependencies. Just copy the binary
 | Telegram | Raw Bot API |
 | Discord | [discordgo](https://github.com/bwmarrin/discordgo) library |
 | WhatsApp | [whatsmeow](https://github.com/tulir/whatsmeow) and [modernc.org/sqlite](https://gitlab.com/cznic/sqlite) |
-| Container | Alpine Linux 3.20 (multi-stage Docker build) |
+| Container | Distroless (multi-stage Docker build) |
 
 Picobot is written **100%** in pure Go, without any CGO dependencies. All required libraries and assets are statically embedded into the final binary. This design ensures zero external runtime dependencies, fast cold start times, and full portability across all platforms supported by Go.
 
@@ -278,7 +295,7 @@ embeds/               Embedded assets (sample skills)
 internal/
   agent/              Agent loop, context, tools, skills
   chat/               Chat message hub
-  channels/           Telegram, Discord, Slack, WhatsApp
+  channels/           Telegram, Discord, Slack, WhatsApp, Signal
   config/             Config schema, loader, onboarding
   cron/               Cron scheduler
   heartbeat/          Periodic task checker
@@ -296,6 +313,7 @@ docker/               Dockerfile, compose, entrypoint
 | Add Discord support                    | ✔️ Completed |
 | Add Slack support                      | ✔️ Completed |
 | Add WhatsApp support                   | ✔️ Completed |
+| Add Signal support                     | ✔️ Completed |
 | AI agent with skill creation capability | ✔️ Completed |
 | Integrate with MCP Servers             | ✔️ Completed |
 | Integrate useful default skills        | 🔄 In Progress|
